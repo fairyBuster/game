@@ -1,0 +1,76 @@
+services:
+  # ============================================
+  # Laravel App (PHP-FPM + Nginx + Supervisor)
+  # ============================================
+  app:
+    build:
+      context: ..
+      dockerfile: core/Dockerfile
+    container_name: xaxino-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-5555}:80"
+    volumes:
+      - ..:/var/www/html
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - xaxino-network
+
+  # ============================================
+  # MySQL / MariaDB
+  # ============================================
+  mysql:
+    image: mysql:8.4
+    container_name: xaxino-mysql
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ../install/database.sql:/docker-entrypoint-initdb.d/01-database.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - xaxino-network
+
+  # ============================================
+  # Redis (Cache / Session / Queue)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: xaxino-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - xaxino-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  xaxino-network:
+    driver: bridge

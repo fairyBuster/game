@@ -1,0 +1,29 @@
+# Credentials / Secrets
+**/push_config.json
+*.pem
+*.key
+
+# Docker
+.env
+docker-compose.override.yml
+
+# Laravel
+/core/vendor/
+/core/node_modules/
+/core/storage/framework/cache/*
+/core/storage/framework/sessions/*
+/core/storage/framework/views/*
+/core/storage/logs/*
+/core/bootstrap/cache/*
+/core/public/storage
+/core/public/hot
+/core/.env
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
