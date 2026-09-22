@@ -1,0 +1,200 @@
+1necoworld.com {
+	reverse_proxy app:80
+
+	@static path /assets/*
+	header @static Cache-Control "public, max-age=604800"
+}
+
+# ============================================================
+# Reepay Payment Aggregator — API / logic backend
+# Rate limit per client IP (X-Forwarded-For dari Cloudflare)
+# ============================================================
+roguecdn.online {
+	encode zstd gzip
+
+	rate_limit {
+		zone api {
+			key {http.request.header.X-Forwarded-For}
+			events 120
+			window 1m
+			match path /merchant/* /callback/* /x9k2m7q4z5/* /health
+		}
+		zone pay {
+			key {http.request.header.X-Forwarded-For}
+			events 240
+			window 1m
+			match path /pay/*
+		}
+	}
+
+	# Merchant API (HMAC + IP whitelist)
+	handle /merchant/* {
+		reverse_proxy payment-merchant-api:8000
+	}
+
+	handle /callback/* {
+		reverse_proxy payment-merchant-api:8000
+	}
+
+	# Halaman pembayaran publik (pay_url) — customer, tanpa auth
+	handle /pay/* {
+		reverse_proxy payment-merchant-api:8000
+	}
+
+	# Admin API
+	handle /x9k2m7q4z5/* {
+		reverse_proxy payment-admin-api:8001
+	}
+	handle /health {
+		reverse_proxy payment-admin-api:8001
+	}
+
+	# Path lain → 404 (jangan bocorkan service lain)
+	handle {
+		respond "Not Found" 404
+	}
+}
+
+api.roguecdn.online {
+	encode zstd gzip
+
+	rate_limit {
+		zone api {
+			key {http.request.header.X-Forwarded-For}
+			events 120
+			window 1m
+			match path /v5/* /merchant/* /callback/* /x9k2m7q4z5/* /health
+		}
+	}
+
+	# Direct gateway v5 (game integration) — same merchant API
+	handle /v5/* {
+		reverse_proxy payment-merchant-api:8000
+	}
+
+	# Merchant API (HMAC + IP whitelist)
+	handle /merchant/* {
+		reverse_proxy payment-merchant-api:8000
+	}
+
+	# Callback dari Jaya untuk ORDER LAMA (sebelum migrasi ke globalcash) — order baru
+	# sudah daftar downNotifyUrl ke globalcash.roguecdn.online
+	handle /callback/* {
+		reverse_proxy payment-merchant-api:8000
+	}
+
+	# Halaman pembayaran pindah ke globalcash.roguecdn.online (api di-whitelist IP)
+	handle /pay/* {
+		redir https://globalcash.roguecdn.online{uri} 301
+	}
+
+	# Admin API
+	handle /x9k2m7q4z5/* {
+		reverse_proxy payment-admin-api:8001
+	}
+	handle /health {
+		reverse_proxy payment-admin-api:8001
+	}
+
+	# Path lain → 404 (jangan bocorkan service lain)
+	handle {
+		respond "Not Found" 404
+	}
+}
+
+# ============================================================
+# Halaman pembayaran publik + callback Jaya — subdomain TIDAK
+# di-whitelist IP (api.roguecdn.online khusus whitelist).
+# ============================================================
+globalcash.roguecdn.online {
+	encode zstd gzip
+
+	rate_limit {
+		zone pay {
+			key {http.request.header.X-Forwarded-For}
+			events 240
+			window 1m
+			match path /pay/*
+		}
+		zone cb {
+			key {http.request.header.X-Forwarded-For}
+			events 120
+			window 1m
+			match path /callback/*
+		}
+	}
+
+	# Halaman pembayaran customer (pay_url)
+	handle /pay/* {
+		reverse_proxy payment-merchant-api:8000
+	}
+
+	# Callback dari Jaya (downNotifyUrl) — verifikasi signature RSA di aplikasi
+	handle /callback/* {
+		reverse_proxy payment-merchant-api:8000
+	}
+
+	# Aset statis halaman bayar (logo bank, background)
+	handle /assets/* {
+		reverse_proxy payment-merchant-api:8000
+	}
+
+	# Path lain → 404
+	handle {
+		respond "Not Found" 404
+	}
+}
+
+# ============================================================
+# Frontend merchant dashboard
+# ============================================================
+merchant.maycacloud.com {
+	encode zstd gzip
+
+	rate_limit {
+		zone web {
+			key {http.request.header.X-Forwarded-For}
+			events 300
+			window 1m
+			exclude path /assets/*
+		}
+	}
+
+	reverse_proxy payment-merchant-dashboard:80
+}
+
+# ============================================================
+# Admin panel
+# ============================================================
+admin.maycacloud.com {
+	encode zstd gzip
+
+	rate_limit {
+		zone web {
+			key {http.request.header.X-Forwarded-For}
+			events 300
+			window 1m
+			exclude path /assets/*
+		}
+	}
+
+	reverse_proxy payment-admin-panel:80
+}
+
+# ============================================================
+# Uptime Kuma — monitoring (proxy ke container uptime-kuma)
+# ============================================================
+status.maycacloud.com {
+	encode zstd gzip
+
+	rate_limit {
+		zone web {
+			key {http.request.header.X-Forwarded-For}
+			events 300
+			window 1m
+			exclude path /assets/*
+		}
+	}
+
+	reverse_proxy uptime-kuma:3001
+}

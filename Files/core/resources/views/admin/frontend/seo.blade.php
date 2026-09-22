@@ -11,7 +11,7 @@
                             <div class="col-xl-4">
                                 <div class="form-group">
                                     <label>@lang('SEO Image')</label>
-                                    <x-image-uploader class="w-100" :imagePath="getImage(getFilePath('seo') . '/' . @$seo->data_values->image, getFileSize('seo'))" :size="getFileSize('seo')" :required="false" />
+                                    <x-image-uploader class="w-100" :imagePath="getImage(getFilePath('seo') . '/' . (is_string(@$seo->data_values->image) ? $seo->data_values->image : ''), getFileSize('seo'))" :size="getFileSize('seo')" :required="false" />
 
                                 </div>
                             </div>

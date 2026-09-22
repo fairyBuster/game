@@ -66,12 +66,12 @@ function activeTemplateName() {
 }
 
 function siteLogo($type = null) {
-    $name = $type ? "/logo_$type.png" : '/logo.png';
+    $name = $type ? "/logo_$type.png" : '/newLogo.png';
     return getImage(getFilePath('logoIcon') . $name);
 }
 
 function siteFavicon() {
-    return getImage(getFilePath('logoIcon') . '/favicon.png');
+    return getImage(getFilePath('logoIcon') . '/newFav.png');
 }
 
 function loadReCaptcha() {

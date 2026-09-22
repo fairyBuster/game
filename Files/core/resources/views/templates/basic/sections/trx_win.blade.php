@@ -47,7 +47,6 @@
                                     <tr>
                                         <th>@lang('Transaction ID')</th>
                                         <th>@lang('User name')</th>
-                                        <th>@lang('Date')</th>
                                         <th>@lang('Amount')</th>
                                     </tr>
                                 </thead>
@@ -56,7 +55,6 @@
                                         <tr>
                                             <td><span>#{{ $transaction->trx }}</span></td>
                                             <td>{{ $transaction->user->username }}</td>
-                                            <td>{{ showDateTime($transaction->created_at) }}</td>
                                             <td><span class="text--base">{{ showAmount($transaction->amount) }}</span></td>
                                         </tr>
                                     @empty

@@ -115,5 +115,8 @@ Route::middleware('auth')->name('user.')->group(function () {
             Route::get('manual', 'manualDepositConfirm')->name('manual.confirm');
             Route::post('manual', 'manualDepositUpdate')->name('manual.update');
         });
+
+        // RoguePay payment status check
+        Route::post('deposit/roguepay/check', 'Gateway\RoguePay\ProcessController@checkStatus')->name('deposit.roguepay.check');
     });
 });

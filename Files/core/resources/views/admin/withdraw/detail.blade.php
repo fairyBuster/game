@@ -58,6 +58,13 @@
                             @php echo $withdrawal->statusBadge @endphp
                         </li>
 
+                        @if ($withdrawal->pg_ref)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @lang('PG Reference')
+                                <span class="fw-bold text-info">{{ $withdrawal->pg_ref }}</span>
+                            </li>
+                        @endif
+
                         @if ($withdrawal->admin_feedback)
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 @lang('Admin Response')

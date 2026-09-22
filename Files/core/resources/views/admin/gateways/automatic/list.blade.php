@@ -46,6 +46,11 @@
                                                     <i class="la la-pencil"></i>@lang('Edit')
                                                 </a>
 
+                                                @if ($gateway->alias == 'RoguePay')
+                                                    <a href="{{ route('admin.gateway.automatic.balance', $gateway->alias) }}" class="btn btn-sm btn-outline--info">
+                                                        <i class="las la-wallet"></i>@lang('Balance')
+                                                    </a>
+                                                @endif
 
                                                 @if ($gateway->status == Status::DISABLE)
                                                     <button class="btn btn-sm btn-outline--success confirmationBtn" data-question="@lang('Are you sure to enable this gateway?')" data-action="{{ route('admin.gateway.automatic.status', $gateway->id) }}">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Constants\Status;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Gateway\RoguePay\ProcessController as RoguePayProcessController;
 use App\Models\Transaction;
 use App\Models\Withdrawal;
 use Illuminate\Http\Request;
@@ -89,7 +90,24 @@ class WithdrawalController extends Controller {
 
     public function approve(Request $request) {
         $request->validate(['id' => 'required|integer']);
-        $withdraw                 = Withdrawal::where('id', $request->id)->where('status', Status::PAYMENT_PENDING)->with('user')->firstOrFail();
+        $withdraw = Withdrawal::where('id', $request->id)->where('status', Status::PAYMENT_PENDING)->with(['user', 'method'])->firstOrFail();
+
+        // Automatic payout via RoguePay when the method collects bank details
+        $payout = RoguePayProcessController::payout($withdraw);
+        if (@$payout['fallback']) {
+            // Method not configured for auto payout — keep the manual approval flow
+        } elseif (!$payout['success']) {
+            $notify[] = ['error', $payout['message']];
+            return back()->withNotify($notify);
+        } else {
+            $withdraw->pg_ref         = $payout['ref_id'];
+            $withdraw->admin_feedback = $request->details;
+            $withdraw->save();
+
+            $notify[] = ['success', 'Payout submitted to RoguePay. The withdrawal will be completed automatically.'];
+            return to_route('admin.withdraw.data.pending')->withNotify($notify);
+        }
+
         $withdraw->status         = Status::PAYMENT_SUCCESS;
         $withdraw->admin_feedback = $request->details;
         $withdraw->save();

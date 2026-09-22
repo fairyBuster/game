@@ -1,11 +1,12 @@
 @php
+    $seoImagePath = is_string(@$seo->image) ? $seo->image : '';
     if (isset($seoContents)) {
         $seoContents = (object) $seoContents;
         $socialImageSize = explode('x', getFileSize('seo'));
     } elseif ($seo) {
         $seoContents = $seo;
         $socialImageSize = explode('x', getFileSize('seo'));
-        $seoContents->image = getImage(getFilePath('seo') . '/' . $seo->image);
+        $seoContents->image = getImage(getFilePath('seo') . '/' . $seoImagePath);
     } else {
         $seoContents = null;
     }
@@ -37,7 +38,7 @@
     <meta property="og:title" content="{{ $seoContents->social_title }}">
     <meta property="og:description" content="{{ $seoContents->social_description }}">
     <meta property="og:image" content="{{ $seoContents->image }}" />
-    <meta property="og:image:type" content="image/{{ pathinfo($seoImage ?? getImage(getFilePath('seo')) .'/'. $seo->image)['extension'] }}">
+    <meta property="og:image:type" content="image/{{ pathinfo($seoImage ?? getImage(getFilePath('seo')) .'/'. $seoImagePath)['extension'] }}">
     <meta property="og:image:width" content="{{ $socialImageSize[0] }}" />
     <meta property="og:image:height" content="{{ $socialImageSize[1] }}" />
     <meta property="og:url" content="{{ url()->current() }}">

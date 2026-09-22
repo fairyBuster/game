@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Gateway\RoguePay\ProcessController as RoguePayProcessController;
 use App\Models\Gateway;
 use App\Models\GatewayCurrency;
 use App\Rules\FileTypeValidate;
@@ -171,6 +172,26 @@ class AutomaticGatewayController extends Controller {
 
     private function currencyIdentifier($name, $default = '') {
         return $name ?? $default;
+    }
+
+    /*
+     * RoguePay merchant balance page
+     */
+    public function balance($alias) {
+        if ($alias != 'RoguePay') {
+            abort(404);
+        }
+        $gateway   = Gateway::where('alias', $alias)->firstOrFail();
+        $pageTitle = $gateway->name . ' Balance';
+        $result    = RoguePayProcessController::balance();
+
+        if (!$result['success']) {
+            $notify[] = ['error', $result['message']];
+            return back()->withNotify($notify);
+        }
+
+        $balance = $result['data'];
+        return view('admin.gateways.automatic.balance', compact('pageTitle', 'gateway', 'balance'));
     }
 
 }

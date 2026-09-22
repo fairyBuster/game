@@ -9,7 +9,8 @@ services:
     container_name: xaxino-app
     restart: unless-stopped
     ports:
-      - "${APP_PORT:-5555}:80"
+      # Bind 127.0.0.1: akses hanya dari host (Caddy proxy via docker network)
+      - "127.0.0.1:${APP_PORT:-5555}:80"
     volumes:
       - ..:/var/www/html
     env_file:
@@ -30,7 +31,8 @@ services:
     container_name: xaxino-mysql
     restart: unless-stopped
     ports:
-      - "${DB_PORT:-3306}:3306"
+      # Bind 127.0.0.1: MySQL TIDAK boleh terbuka ke internet (audit keamanan)
+      - "127.0.0.1:${DB_PORT:-3306}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -55,7 +57,8 @@ services:
     container_name: xaxino-redis
     restart: unless-stopped
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      # Bind 127.0.0.1: Redis TIDAK boleh terbuka ke internet (audit keamanan)
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
@@ -67,9 +70,33 @@ services:
     networks:
       - xaxino-network
 
+  # ============================================
+  # Caddy (reverse proxy / TLS)
+  # ============================================
+  caddy:
+    image: xaxino-caddy-rl
+    build:
+      context: ..
+      dockerfile: core/docker/caddy/Dockerfile
+    container_name: xaxino-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - xaxino-network
+
 volumes:
   mysql_data:
   redis_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   xaxino-network:

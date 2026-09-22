@@ -27,7 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     ->group(base_path('routes/api.php'));
                 Route::middleware(['web'])
                     ->namespace('Admin')
-                    ->prefix('admin')
+                    ->prefix('master-9k2x7')
                     ->name('admin.')
                     ->group(base_path('routes/admin.php'));
 
@@ -44,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: '*');
         $middleware->group('web',[
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,

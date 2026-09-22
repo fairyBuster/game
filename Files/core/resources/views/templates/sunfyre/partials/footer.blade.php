@@ -9,21 +9,6 @@
     <div class="footer-area__thumb">
         <img src="{{ getImage('assets/images/frontend/footer/' . $footer->data_values->image, '1110x420') }}" alt="@lang('image')">
     </div>
-    <div class="payment-method pb-100">
-        <div class="container">
-            <h4 class="payment-method__title">{{ __(@$payment->data_values->heading) }}</h4>
-            <div class="payment-slider">
-                @foreach ($payments as $item)
-                    <div class="payment-single-item">
-                        <div class="payment-item__image">
-                            <img src="{{ getImage('assets/images/frontend/payment_method/' . $item->data_values->image, '90x65') }}" alt="@lang('image')">
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
-
     <div class="footer-bottom py-50">
         <div class="container">
             <div class="footer-bottom__wrapper">

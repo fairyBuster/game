@@ -92,6 +92,11 @@ echo "==> Optimizing Laravel..."
 php artisan config:cache --no-interaction
 php artisan view:cache --no-interaction
 
+# Pastikan storage bisa ditulis php-fpm (www-data uid 33) - compiled views
+# dibuat oleh root di atas, jadi harus di-chgrp agar runtime tidak 500 saat recompile
+chgrp -R 33 /var/www/html/core/storage 2>/dev/null || true
+chmod -R g+w /var/www/html/core/storage 2>/dev/null || true
+
 # Copy/merge assets dari root (lokasi lama) ke public/assets
 if [ -d /var/www/html/assets ]; then
   echo "==> Copying assets to core/public/assets..."

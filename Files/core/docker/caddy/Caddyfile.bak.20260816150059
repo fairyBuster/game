@@ -1,0 +1,6 @@
+1necoworld.com {
+	reverse_proxy app:80
+
+	@static path /assets/*
+	header @static Cache-Control "public, max-age=604800"
+}

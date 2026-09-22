@@ -119,6 +119,7 @@ Route::middleware('admin')->group(function () {
             Route::post('update/{code}', 'update')->name('update');
             Route::post('remove/{id}', 'remove')->name('remove');
             Route::post('status/{id}', 'status')->name('status');
+            Route::get('balance/{alias}', 'balance')->name('balance');
         });
 
         // Manual Methods
